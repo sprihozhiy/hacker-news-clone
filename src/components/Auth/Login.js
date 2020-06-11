@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import useFormValidation from "./useFormValidation";
+import validateLogin from "./validateLogin";
 
 const INITIAL_STATE = {
   name: "",
@@ -8,9 +9,14 @@ const INITIAL_STATE = {
 };
 
 function Login(props) {
-  const { handleSubmit, handleChange, values } = useFormValidation(
-    INITIAL_STATE
-  );
+  const {
+    handleSubmit,
+    handleBlur,
+    handleChange,
+    values,
+    errors,
+    submitting,
+  } = useFormValidation(INITIAL_STATE, validateLogin);
 
   const [login, setLogin] = useState(true);
   return (
@@ -33,7 +39,10 @@ function Login(props) {
           type="email"
           placeholder="Your Email"
           name="email"
+          className={errors.email && "error-input"}
+          onBlur={handleBlur}
         />
+        {errors.email && <p className="error-text">{errors.email}</p>}
         <input
           value={values.password}
           onChange={handleChange}
@@ -41,9 +50,17 @@ function Login(props) {
           placeholder="Choose A Password"
           autoComplete="off"
           name="password"
+          onBlur={handleBlur}
+          className={errors.password && "error-input"}
         />
+        {errors.password && <p className="error-text">{errors.password}</p>}
         <div className="flex mt3">
-          <button type="submit" className="button pointer mr2">
+          <button
+            type="submit"
+            className="button pointer mr2"
+            disabled={submitting}
+            style={{ background: submitting ? "grey" : "orange" }}
+          >
             Submit
           </button>
           <button
