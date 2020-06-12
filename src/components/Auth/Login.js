@@ -20,14 +20,21 @@ function Login(props) {
   } = useFormValidation(INITIAL_STATE, validateLogin, authenticateUser);
 
   const [login, setLogin] = useState(true);
+  const [firebaseError, setFirebaseError] = useState(null);
 
-  //Authentication
+  //Authentication with frontend and server validation
   async function authenticateUser() {
     const { name, email, password } = values;
-    const response = login
-      ? await firebase.login(email, password)
-      : await firebase.register(name, email, password);
-    console.log({ response });
+    try {
+      login
+        ? await firebase.login(email, password)
+        : await firebase.register(name, email, password);
+      //After authentication user will be redirected to a root page and tracking user's session
+      props.history.push("/");
+    } catch (err) {
+      console.error("Authentication Error", err);
+      setFirebaseError(err.message);
+    }
   }
 
   return (
@@ -65,6 +72,7 @@ function Login(props) {
           className={errors.password && "error-input"}
         />
         {errors.password && <p className="error-text">{errors.password}</p>}
+        {firebaseError && <p className="error-text">{firebaseError}</p>}
         <div className="flex mt3">
           <button
             type="submit"
