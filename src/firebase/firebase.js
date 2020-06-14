@@ -17,9 +17,13 @@ class Firebase {
       displayName: name,
     });
   }
-  //logging a user
+  //logging in a user
   async login(email, password) {
     return await this.auth.signInWithEmailAndPassword(email, password);
+  }
+  //logging out a user
+  async logout() {
+    await this.auth.signOut();
   }
 }
 
