@@ -12,7 +12,6 @@ import firebase, { FirebaseContext } from "../firebase";
 
 function App() {
   const user = useAuth();
-  console.log({ user });
 
   return (
     <BrowserRouter>
