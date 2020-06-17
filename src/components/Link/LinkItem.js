@@ -6,6 +6,8 @@ import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 
 function LinkItem({ link, index, showCount, history }) {
   const { firebase, user } = useContext(FirebaseContext);
+
+  //voting functionality (uodating data in firestore)
   function handleVote() {
     if (!user) {
       history.push("/login");
@@ -20,6 +22,18 @@ function LinkItem({ link, index, showCount, history }) {
         }
       });
     }
+  }
+
+  //deleting links
+  const postedByAuthUser = user && user.uid === link.postedBy.id;
+  function handleDeleteLink() {
+    const linkRef = firebase.db.collection("links").doc(link.id);
+    linkRef
+      .delete()
+      .then(() => {
+        console.log(`Document with ID ${link.id} is deleted`);
+      })
+      .catch((err) => console.error("Error deleting document:", err));
   }
 
   return (
@@ -43,6 +57,14 @@ function LinkItem({ link, index, showCount, history }) {
               ? `${link.comments.length} comments`
               : "discuss"}
           </Link>
+          {postedByAuthUser && (
+            <>
+              {" | "}
+              <span className="delete-button" onClick={handleDeleteLink}>
+                delete
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
