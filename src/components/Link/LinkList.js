@@ -1,12 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import FirebaseContext from "../../firebase/context";
 import LinkItem from "./LinkItem";
-import { LINKS_PER_PAGE } from "../../utils";
+import { LINKS_PER_PAGE } from "../../utils/index";
+import axios from "axios";
 
 function LinkList(props) {
   const { firebase } = useContext(FirebaseContext);
   const [links, setLinks] = useState([]);
   const [cursor, setCursor] = useState(null);
+  const [loading, setLoading] = useState(false);
   const isNewPage = props.location.pathname.includes("new");
   const isTopPage = props.location.pathname.includes("top");
   const page = Number(props.match.params.page);
@@ -19,6 +21,7 @@ function LinkList(props) {
   //fetching data with ordering
   function getLinks() {
     const hasCursor = Boolean(cursor);
+    setLoading(true);
     if (isTopPage) {
       return firebase.db
         .collection("links")
@@ -38,6 +41,20 @@ function LinkList(props) {
         .startAfter(cursor.created)
         .limit(LINKS_PER_PAGE)
         .onSnapshot(handleSnapshot);
+    } else {
+      const offset = page * LINKS_PER_PAGE - LINKS_PER_PAGE;
+      axios
+        .get(
+          `https://us-central1-hacker-news-7a3d6.cloudfunctions.net/linksPagination?offset=${offset}`
+        )
+        .then((response) => {
+          const links = response.data;
+          const lastLink = links[links.length - 1];
+          setLinks(links);
+          setCursor(lastLink);
+          setLoading(false);
+        });
+      return () => {};
     }
   }
 
@@ -45,9 +62,10 @@ function LinkList(props) {
     const links = snapshot.docs.map((doc) => {
       return { id: doc.id, ...doc.data() };
     });
-    const lastLink = links[links.lenght - 1];
+    const lastLink = links[links.length - 1];
     setLinks(links);
     setCursor(lastLink);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -67,14 +85,15 @@ function LinkList(props) {
     }
   }
 
+  const pageIndex = page ? (page - 1) * LINKS_PER_PAGE + 1 : 0;
   return (
-    <div>
+    <div style={{ opacity: loading ? 0.25 : 1 }}>
       {links.map((link, index) => (
         <LinkItem
           key={link.id}
           showCount={true}
           link={link}
-          index={index + 1}
+          index={index + pageIndex}
         />
       ))}
       {isNewPage && (
